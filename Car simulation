@@ -1,0 +1,45 @@
+import os
+import subprocess
+
+def run_sumo_simulation(sumo_cmd):
+    process = subprocess.Popen(sumo_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
+    while True:
+        line = process.stdout.readline().decode('utf-8').strip()
+        if not line:
+            break
+
+        if "time" in line:
+            # Vehicle position data comes after "time" lines
+            vehicle_data = process.stdout.readline().decode('utf-8').strip().split()
+            while vehicle_data:
+                veh_id = vehicle_data[0]
+                x, y = float(vehicle_data[1]), float(vehicle_data[2])
+                print(f"Vehicle {veh_id} position: ({x}, {y})")
+
+                vehicle_data = process.stdout.readline().decode('utf-8').strip().split()
+
+    process.communicate()
+
+if __name__ == "__main__":
+    sumo_binary = "sumo"  # Replace with the path to your SUMO binary if needed
+    sumo_config_file = "path/to/your/sumo_config.sumocfg"  # Replace with the path to your SUMO scenario file
+
+    sumo_cmd = f"{sumo_binary} -c {sumo_config_file}"
+    if "SUMO_HOME" in os.environ:
+        sumo_cmd = os.path.join(os.environ["SUMO_HOME"], "bin", sumo_cmd)
+
+    run_sumo_simulation(sumo_cmd)
+
+
+#output
+#Vehicle 1 position: (x1, y1)
+#Vehicle 2 position: (x2, y2)
+#Vehicle 1 position: (x1', y1')
+#Vehicle 3 position: (x3, y3)
+#Vehicle 2 position: (x2', y2')
+
+#here x1, y1, x2, y2, etc., represent the initial positions of vehicles 1 and 2 at the beginning of the simulation,
+# and x1', y1', x2', y2', represent their positions at the next time step, and so on.
+
+#The output will keep printing vehicle positions at each time step until the simulation is completed.
